@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: file:; font-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <title>MiMo 余额挂件</title>
+    <link rel="stylesheet" href="styles/tokens.css" />
+    <link rel="stylesheet" href="styles/pet.css" />
+    <link rel="stylesheet" href="styles/panel.css" />
+    <link rel="stylesheet" href="styles/menu.css" />
+  </head>
+  <body data-theme="light" data-preset="xiaomi">
+    <div id="pet" class="pet">
+      <!-- 余额面板：点击桌宠打开 -->
+      <section id="panel" class="panel" hidden aria-label="MiMo 账户">
+        <header class="panel__head">
+          <h1 class="panel__title">MiMo 账户</h1>
+          <button id="panel-close" class="icon-btn" type="button" aria-label="关闭面板">×</button>
+        </header>
+
+        <div class="panel__body">
+          <div class="row row--hero">
+            <span class="row__label">余额</span>
+            <span id="balance" class="row__value row__value--hero">—</span>
+          </div>
+          <div class="row">
+            <span class="row__label">现金 / 赠送</span>
+            <span id="cash-gift" class="row__value">—</span>
+          </div>
+
+          <hr class="rule" />
+
+          <div class="row" data-opt="plan">
+            <span class="row__label">Token Plan</span>
+            <span id="plan" class="row__value">—</span>
+          </div>
+          <div class="bar" data-opt="plan"><div id="plan-bar" class="bar__fill"></div></div>
+
+          <div class="row">
+            <span class="row__label">今日 / 7 天</span>
+            <span id="spend" class="row__value">—</span>
+          </div>
+
+          <hr class="rule" />
+
+          <div class="row" data-opt="sessionTokens">
+            <span class="row__label">会话 Tokens</span>
+            <span id="session-tokens" class="row__value">—</span>
+          </div>
+          <div class="row" data-opt="cacheHit">
+            <span class="row__label">缓存命中</span>
+            <span id="cache-hit" class="row__value">—</span>
+          </div>
+          <div class="row" data-opt="context">
+            <span class="row__label">本轮上下文</span>
+            <span id="context" class="row__value">—</span>
+          </div>
+          <div class="row" data-opt="turn">
+            <span class="row__label">本轮</span>
+            <span id="turn" class="row__value">—</span>
+          </div>
+
+          <p id="status" class="status" role="status"></p>
+        </div>
+      </section>
+
+      <!-- 一次性提示气泡（待处理 / 本轮花费 / 闲聊） -->
+      <div id="toast" class="toast" hidden></div>
+
+      <!-- 桌宠本体 -->
+      <div id="whale" class="whale">
+        <img id="pet-image" class="whale__image" src="../../artwork-nc/xiaomi.png" alt="" draggable="false" />
+        <button id="menu-button" class="menu-button" type="button" title="设置" aria-label="设置">☰</button>
+      </div>
+
+      <!-- 设置面板 -->
+      <section id="menu" class="menu" hidden aria-label="设置">
+        <header class="menu__head">
+          <h2 class="menu__title">设置</h2>
+          <button id="menu-close" class="icon-btn" type="button" aria-label="关闭设置">×</button>
+        </header>
+
+        <section class="menu__section">
+          <h3 class="menu__section-title">外观</h3>
+
+          <label class="menu__label" for="scale">缩放 <span id="scale-value" class="menu__value">100%</span></label>
+          <input id="scale" class="range" type="range" min="60" max="160" step="5" value="100" />
+
+          <label class="menu__label" for="theme-select">主题</label>
+          <select id="theme-select" class="input">
+            <option value="auto">跟随 MiMo / 系统</option>
+            <option value="light">浅色</option>
+            <option value="dark">深色</option>
+          </select>
+
+          <span class="menu__label">角色皮肤</span>
+          <div class="preset-grid">
+            <button class="preset" type="button" data-preset="xiaomi" data-file="../../artwork-nc/xiaomi.png">
+              <img src="../../artwork-nc/xiaomi.png" alt="" /><span>小米姬</span>
+            </button>
+            <button class="preset" type="button" data-preset="xiaoai" data-file="../../artwork-nc/xiaoai.png">
+              <img src="../../artwork-nc/xiaoai.png" alt="" /><span>小爱同学</span>
+            </button>
+            <button class="preset" type="button" data-preset="whale" data-file="../assets/whale-tight.png">
+              <img src="../assets/whale-tight.png" alt="" /><span>大肥鱼</span>
+            </button>
+          </div>
+
+          <div class="menu__row">
+            <button id="pick-image" class="btn btn--ghost" type="button">选择图片…</button>
+            <button id="reset-image" class="btn btn--ghost" type="button">恢复默认</button>
+          </div>
+          <input id="image-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden />
+          <p id="image-name" class="hint">当前：小米姬</p>
+        </section>
+
+        <section class="menu__section">
+          <h3 class="menu__section-title">提示</h3>
+
+          <label class="check">
+            <input id="speech-enabled" type="checkbox" checked />
+            <span>闲时自言自语（每 3 分钟）</span>
+          </label>
+          <textarea id="speech-lines" class="input input--area" rows="3" placeholder="一行一句台词"></textarea>
+
+          <span class="menu__label">气泡配色</span>
+          <label class="check">
+            <input id="toast-follow" type="checkbox" checked />
+            <span>跟随主题</span>
+          </label>
+          <div class="color-grid">
+            <label class="color"><span>文字</span><input id="toast-text" type="color" value="#000000" disabled /></label>
+            <label class="color"><span>填充</span><input id="toast-fill" type="color" value="#ffffff" disabled /></label>
+            <label class="color"><span>轮廓</span><input id="toast-stroke" type="color" value="#ff6900" disabled /></label>
+          </div>
+
+          <span class="menu__label">面板显示项</span>
+          <label class="check"><input type="checkbox" data-opt="plan" checked /><span>Token Plan</span></label>
+          <label class="check"><input type="checkbox" data-opt="sessionTokens" checked /><span>会话 Tokens</span></label>
+          <label class="check"><input type="checkbox" data-opt="cacheHit" checked /><span>缓存命中率</span></label>
+          <label class="check"><input type="checkbox" data-opt="context" checked /><span>上下文用量</span></label>
+          <label class="check"><input type="checkbox" data-opt="turn" checked /><span>轮次 / 步数 / 速度</span></label>
+        </section>
+
+        <section class="menu__section">
+          <h3 class="menu__section-title">数据</h3>
+
+          <label class="menu__label" for="cookie">MiMo Cookie</label>
+          <textarea
+            id="cookie"
+            class="input input--area"
+            rows="3"
+            spellcheck="false"
+            placeholder="Cookie: api-platform_serviceToken=…; userId=…"
+          ></textarea>
+          <div class="menu__row">
+            <button id="save-cookie" class="btn" type="button">保存 Cookie</button>
+            <button id="open-console" class="btn btn--ghost" type="button">打开控制台</button>
+          </div>
+          <p id="cookie-status" class="hint"></p>
+
+          <label class="menu__label" for="session-list">统计哪个会话</label>
+          <select id="session-list" class="input" size="4"></select>
+          <div class="menu__row">
+            <button id="pin-session" class="btn" type="button">锁定所选</button>
+            <button id="follow-latest" class="btn btn--ghost" type="button">跟随最新</button>
+          </div>
+          <p id="session-hint" class="hint">未锁定：自动取最新会话</p>
+
+          <label class="menu__label" for="warn">低余额提示（元）</label>
+          <div class="menu__row">
+            <input id="warn" class="input" type="number" min="0" step="0.5" placeholder="跟随官方" />
+            <button id="save-warn" class="btn" type="button">保存</button>
+            <button id="warn-follow" class="btn btn--ghost" type="button">跟随官方</button>
+          </div>
+          <p id="warn-hint" class="hint"></p>
+        </section>
+
+        <section class="menu__section">
+          <h3 class="menu__section-title">系统</h3>
+          <div class="menu__row">
+            <button id="autostart-enable" class="btn" type="button">开机自启</button>
+            <button id="autostart-disable" class="btn btn--ghost" type="button">取消自启</button>
+          </div>
+          <p id="autostart-hint" class="hint"></p>
+
+          <div class="menu__row">
+            <button id="open-data" class="btn btn--ghost" type="button">数据目录</button>
+            <button id="open-logs" class="btn btn--ghost" type="button">日志</button>
+          </div>
+
+          <div class="menu__row">
+            <button id="open-diagnostics" class="btn btn--ghost" type="button">诊断信息</button>
+            <button id="check-update" class="btn btn--ghost" type="button">检查更新</button>
+          </div>
+          <div class="menu__row">
+            <button id="quit" class="btn btn--ghost" type="button">退出</button>
+          </div>
+          <p id="version" class="hint"></p>
+        </section>
+      </section>
+
+      <!-- 诊断面板 -->
+      <section id="diagnostics" class="diagnostics" hidden aria-label="诊断信息">
+        <header class="diagnostics__head">
+          <h2 class="menu__title">诊断信息</h2>
+          <button id="diagnostics-close" class="icon-btn" type="button" aria-label="关闭诊断">×</button>
+        </header>
+        <div id="diagnostics-body" class="diagnostics__body"></div>
+      </section>
+    </div>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>

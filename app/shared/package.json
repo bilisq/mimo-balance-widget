@@ -1,0 +1,4 @@
+{
+  "type": "module",
+  "description": "共享的纯函数模块（ESM）：渲染层与 Node 测试都可以直接 import"
+}

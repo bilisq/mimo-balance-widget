@@ -1,0 +1,234 @@
+/* =========================================================
+   余额面板 + 提示气泡
+   ========================================================= */
+
+.panel {
+  position: absolute;
+  right: calc(var(--pet-w) + 2px);
+  bottom: calc(var(--pet-h) - 32px);
+  width: 238px;
+  max-height: calc(100% - 20px);
+  display: flex;
+  flex-direction: column;
+  z-index: 5;
+  background: var(--surface);
+  border: 2px solid var(--accent);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  animation: pop 0.22s ease;
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px 2px;
+}
+
+.panel__title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.panel__body {
+  padding: 0 12px 9px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.icon-btn {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.icon-btn:hover {
+  background: var(--surface-muted);
+  color: var(--text);
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 3px 0;
+  font-size: 11px;
+}
+
+.row__label {
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+
+.row__value {
+  max-width: 68%;
+  overflow: hidden;
+  text-align: right;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.row--hero {
+  margin-top: 2px;
+}
+
+.row__value--hero {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  background: linear-gradient(45deg, var(--accent), var(--accent-soft));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* 低余额：覆盖渐变，直接红色 */
+.row__value--hero.is-low {
+  background: none;
+  color: var(--bad);
+  -webkit-text-fill-color: var(--bad);
+}
+
+body[data-theme="dark"] .row__value--hero.is-low {
+  color: #f87171;
+  -webkit-text-fill-color: #f87171;
+}
+
+.rule {
+  height: 1px;
+  margin: 6px 0;
+  border: 0;
+  background: var(--border);
+}
+
+.bar {
+  height: 8px;
+  margin: 4px 0 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 12%, transparent);
+  overflow: hidden;
+}
+
+.bar__fill {
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  transition: width 0.55s ease;
+  background: linear-gradient(90deg, #ef4444, #f97316, #eab308, #84cc16, #22c55e);
+}
+
+/* 深色模式用纯色分段，避免渐变在暗底上发灰 */
+body[data-theme="dark"] .bar__fill {
+  background: var(--good);
+}
+body[data-theme="dark"] .bar__fill.is-mid {
+  background: var(--warn);
+}
+body[data-theme="dark"] .bar__fill.is-low {
+  background: var(--bad);
+}
+
+.status {
+  min-height: 15px;
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.status.is-ok {
+  color: var(--good);
+}
+.status.is-warn {
+  color: var(--warn);
+}
+.status.is-error {
+  color: var(--bad);
+}
+
+/* ---------------- 气泡 ---------------- */
+
+.toast {
+  position: absolute;
+  right: 10px;
+  bottom: calc(var(--pet-h) + 8px);
+  max-width: 230px;
+  z-index: 15;
+  padding: 9px 12px;
+  border: 2px solid var(--toast-stroke);
+  border-radius: 12px;
+  background: var(--toast-fill);
+  color: var(--toast-text);
+  box-shadow: var(--shadow);
+  font-size: 12px;
+  line-height: 1.45;
+  pointer-events: none;
+  animation: pop 0.25s ease;
+}
+
+.toast__title {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--toast-stroke);
+}
+
+.toast__line {
+  display: block;
+}
+
+.toast__strong {
+  font-weight: 700;
+}
+
+/* 闲聊用虚线边框 + 小标签，避免和系统提示混淆 */
+.toast[data-kind="idle"] {
+  border-style: dashed;
+  border-width: 1px;
+  opacity: 0.92;
+}
+.toast[data-kind="idle"] .toast__title::before {
+  content: "闲聊 ";
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+/* 待处理常驻，左侧加一条信号线 */
+.toast[data-kind="pending"] {
+  border-left-width: 6px;
+}
+
+.toast__balance {
+  display: inline-block;
+  margin-top: 2px;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  color: var(--accent);
+}
+
+.toast__balance.is-low {
+  color: var(--bad);
+}

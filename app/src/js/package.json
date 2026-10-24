@@ -1,0 +1,4 @@
+{
+  "type": "module",
+  "description": "渲染层（浏览器/Electron 以 <script type=module> 加载），此文件只为 Node 工具链识别模块类型"
+}

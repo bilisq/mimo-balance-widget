@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: test (node ${{ matrix.node }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Node unit tests
+        run: npm test
+
+      - name: Python unit tests
+        run: npm run test:py
+
+      - name: Syntax check
+        run: npm run lint
+
+  smoke:
+    name: electron smoke
+    runs-on: windows-latest
+    # GUI 冒烟在 CI 上偶尔会因为没有桌面会话失败，不阻塞合并
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: npm install --no-audit --no-fund
+
+      - name: Run smoke test
+        env:
+          MIMO_WHALE_HOME: ${{ github.workspace }}\.tmp\smoke-home
+        run: npm run smoke
+
+      - name: Upload smoke report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-report
+          path: .tmp/smoke-home/smoke-report.json
+          if-no-files-found: ignore

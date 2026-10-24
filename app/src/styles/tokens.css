@@ -1,0 +1,139 @@
+/* =========================================================
+   设计令牌 / 基础重置
+   主题与皮肤全部通过 CSS 变量切换，组件里不出现写死的颜色，
+   因此也不需要 !important。
+   ========================================================= */
+
+:root {
+  color-scheme: light;
+
+  --font: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+
+  /* 品牌色，会被皮肤覆盖 */
+  --accent: #ff6900;
+  --accent-soft: #ff8f4a;
+
+  /* 中性色 */
+  --surface: rgba(255, 255, 255, 0.95);
+  --surface-solid: #ffffff;
+  --surface-muted: #f8fafc;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --border: rgba(15, 23, 42, 0.12);
+  --shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+
+  /* 语义色 */
+  --good: #22c55e;
+  --warn: #eab308;
+  --bad: #ef4444;
+
+  /* 气泡配色（跟随主题时用这些值） */
+  --toast-text: #000000;
+  --toast-fill: #ffffff;
+  --toast-stroke: var(--accent);
+
+  /* 桌宠尺寸，由 JS 用 geometry.js 覆盖，保证与主进程一致 */
+  --pet-w: 170px;
+  --pet-h: 180px;
+  --pet-scale: 1;
+}
+
+body[data-theme="dark"] {
+  color-scheme: dark;
+  --surface: rgba(20, 20, 20, 0.96);
+  --surface-solid: #141414;
+  --surface-muted: #1f1f23;
+  --text: #f4f4f5;
+  --muted: #a1a1aa;
+  --border: rgba(244, 244, 245, 0.16);
+  --shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  --toast-text: #f4f4f5;
+  --toast-fill: #141414;
+}
+
+/* 皮肤：只改品牌色 */
+body[data-preset="xiaoai"] {
+  --accent: #fc3c40;
+  --accent-soft: #ff6b6f;
+}
+body[data-preset="xiaoai"][data-theme="dark"] {
+  --accent: #bb3b44;
+  --accent-soft: #d0545c;
+}
+body[data-preset="whale"] {
+  --accent: #586da3;
+  --accent-soft: #7b90c7;
+}
+body[data-preset="whale"][data-theme="dark"] {
+  --accent: #8ea2d6;
+  --accent-soft: #a8b6d9;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* 全项目唯一的 !important：保证 hidden 属性一定生效 */
+[hidden] {
+  display: none !important;
+}
+
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12px;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+/* 需要复制粘贴的控件放行选择 */
+input,
+textarea,
+.diagnostics__body {
+  user-select: text;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 4px 0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+}

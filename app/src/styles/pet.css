@@ -1,0 +1,84 @@
+/* =========================================================
+   桌宠本体：拖拽 / 按压形变 / 菜单按钮
+   ========================================================= */
+
+.pet {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.whale {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: var(--pet-w);
+  height: var(--pet-h);
+  z-index: 2;
+  cursor: grab;
+  transform-origin: 100% 100%;
+  transform: scale(var(--pet-scale));
+  transition: transform 0.12s ease-out;
+}
+
+.whale.is-pressed {
+  cursor: grabbing;
+  transition: transform 0.08s ease-out;
+  transform: scale(calc(var(--pet-scale) * 1.1), calc(var(--pet-scale) * 0.8)) translateY(8px);
+}
+
+.whale.is-released {
+  animation: squash-back 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.whale__image {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+@keyframes squash-back {
+  0% {
+    transform: scale(calc(var(--pet-scale) * 1.1), calc(var(--pet-scale) * 0.8)) translateY(8px);
+  }
+  40% {
+    transform: scale(calc(var(--pet-scale) * 0.92), calc(var(--pet-scale) * 1.1));
+  }
+  70% {
+    transform: scale(calc(var(--pet-scale) * 1.05), calc(var(--pet-scale) * 0.95));
+  }
+  100% {
+    transform: scale(var(--pet-scale));
+  }
+}
+
+/* 菜单按钮：平时隐藏，鼠标靠近或菜单打开时出现 */
+.menu-button {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  line-height: 1;
+  border-radius: 999px;
+  color: var(--accent);
+  background: var(--surface-solid);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.whale:hover .menu-button,
+.menu-button:focus-visible,
+.pet.is-zone .menu-button,
+.pet.is-menu-open .menu-button {
+  opacity: 1;
+  pointer-events: auto;
+}

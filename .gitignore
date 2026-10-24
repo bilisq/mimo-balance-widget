@@ -1,0 +1,48 @@
+# ---- 依赖 / 构建 ----
+node_modules/
+dist/
+release/
+out/
+# 启动器是编译产物：由 scripts\build-launcher.ps1 生成，不进仓库
+MiMoBalanceWidget.exe
+launcher-trace.log
+
+# ---- 本机数据（含凭据，绝不入库）----
+config.json
+whale.config.json
+whale.cache.json
+whale.ledger.json
+settings.json
+autostart.json
+pet-path.txt
+bootstrap.ps1
+*.lnk
+*.local.json
+
+# ---- 自定义皮肤（用户上传）----
+app/assets/custom/
+app/assets/presets/
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# ---- 测试 / 临时 ----
+.tmp/
+.tmp-test/
+.tmp-test-py/
+.tmp-run/
+coverage/
+
+# ---- 编辑器 / 系统 ----
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+logs/

@@ -1,0 +1,37 @@
+{
+  "name": "mimo-balance-widget",
+  "productName": "MiMo 余额挂件",
+  "version": "0.1.0",
+  "private": true,
+  "description": "透明置顶的 MiMo 账户桌宠：余额、Token Plan、今日/7 日消耗、会话用量与缓存命中",
+  "homepage": "https://github.com/bilisq/mimo-balance-widget#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bilisq/mimo-balance-widget.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bilisq/mimo-balance-widget/issues"
+  },
+  "license": "MIT",
+  "author": "MiMo Balance Widget Contributors",
+  "main": "app/main.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "electron .",
+    "smoke": "electron . --smoke-test",
+    "test": "node --test",
+    "test:py": "node scripts/test-python.js",
+    "test:all": "npm test && npm run test:py",
+    "lint": "node scripts/check-syntax.js",
+    "setup": "powershell -ExecutionPolicy Bypass -File setup.ps1",
+    "check": "powershell -ExecutionPolicy Bypass -File setup.ps1 -Check",
+    "package": "powershell -ExecutionPolicy Bypass -File scripts/package-release.ps1",
+    "package:stage": "powershell -ExecutionPolicy Bypass -File scripts/package-release.ps1 -SkipZip"
+  },
+  "devDependencies": {
+    "electron": "37.10.3"
+  }
+}

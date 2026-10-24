@@ -1,0 +1,301 @@
+/* =========================================================
+   设置面板 / 表单控件 / 诊断面板
+   ========================================================= */
+
+.menu {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 258px;
+  max-height: calc(100% - 16px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 20;
+  padding: 10px 14px 14px;
+  background: var(--surface-solid);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  animation: pop 0.18s ease;
+}
+
+.menu__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.menu__title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.menu__section {
+  padding-top: 10px;
+  margin-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.menu__section:first-of-type {
+  padding-top: 0;
+  margin-top: 0;
+  border-top: 0;
+}
+
+.menu__section-title {
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.menu__label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 8px 0 4px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.menu__value {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.menu__row {
+  display: flex;
+  gap: 8px;
+  margin: 6px 0 4px;
+}
+
+.menu__row .input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---------------- 控件 ---------------- */
+
+.range {
+  width: 100%;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.input {
+  width: 100%;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 11px;
+  color: var(--text);
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  outline: none;
+}
+
+.input:focus-visible {
+  border-color: var(--accent);
+}
+
+.input--area {
+  resize: vertical;
+  min-height: 56px;
+  line-height: 1.45;
+}
+
+select.input[size] {
+  height: auto;
+  padding: 4px;
+}
+
+.btn {
+  flex: 1;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border-radius: 8px;
+  transition: filter 0.15s ease;
+}
+
+.btn:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.btn--ghost {
+  color: var(--muted);
+  background: var(--surface-solid);
+  border: 1px solid var(--border);
+  font-weight: 500;
+}
+
+.btn--ghost:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--surface-muted);
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 5px 0;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.check input {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--accent);
+}
+
+.color-grid {
+  display: flex;
+  gap: 8px;
+  margin: 6px 0 4px;
+}
+
+.color {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.color input[type="color"] {
+  width: 100%;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.color input[type="color"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.preset-grid {
+  display: flex;
+  gap: 8px;
+  margin: 6px 0 4px;
+}
+
+.preset {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 4px;
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--surface-muted);
+  border: 2px solid transparent;
+  border-radius: 10px;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.preset img {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.preset:hover {
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.preset.is-active {
+  color: var(--accent);
+  font-weight: 600;
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.hint {
+  margin-top: 4px;
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.hint.is-error {
+  color: var(--bad);
+}
+
+.hint.is-ok {
+  color: var(--good);
+}
+
+/* ---------------- 诊断 ---------------- */
+
+.diagnostics {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 276px;
+  max-height: calc(100% - 16px);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 14px 14px;
+  background: var(--surface-solid);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  animation: pop 0.18s ease;
+}
+
+.diagnostics__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.diagnostics__body {
+  overflow-y: auto;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.diagnostics__group {
+  margin-bottom: 8px;
+}
+
+.diagnostics__group-title {
+  margin-bottom: 3px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.diagnostics__row {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.diagnostics__key {
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+
+.diagnostics__value {
+  text-align: right;
+  overflow-wrap: anywhere;
+}
