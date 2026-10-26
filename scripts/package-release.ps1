@@ -15,7 +15,7 @@
 param(
     [string]$OutDir = '',
     [switch]$SkipZip,
-    [switch]$IncludeDocs
+    [bool]$IncludeDocs = $true
 )
 
 $ErrorActionPreference = 'Stop'
@@ -138,8 +138,26 @@ if (-not $SkipZip) {
     $zipPath = Join-Path $OutDir ("{0}.zip" -f $name)
     if (Test-Path -LiteralPath $zipPath) { Remove-Item -LiteralPath $zipPath -Force }
     Write-Host '  正在压缩（Electron 体积较大，可能需要几分钟）...' -ForegroundColor Cyan
+    Add-Type -AssemblyName System.IO.Compression
     Add-Type -AssemblyName System.IO.Compression.FileSystem
-    [System.IO.Compression.ZipFile]::CreateFromDirectory($stage, $zipPath, [System.IO.Compression.CompressionLevel]::Optimal, $true)
+    # 不能用 ZipFile::CreateFromDirectory：在 .NET Framework 上它写入的条目名是反斜杠，
+    # 而 ZIP 规范要求正斜杠。Windows 资源管理器会"容忍"，但 macOS/Linux 的 unzip、
+    # Python 的 zipfile 会把 `a\b\c.js` 当成一个文件名，解压后目录结构全塌。
+    # 这里手动逐个加条目，统一成 '/'。
+    $archive = [System.IO.Compression.ZipFile]::Open($zipPath, [System.IO.Compression.ZipArchiveMode]::Create)
+    try {
+        # 保留顶层文件夹：解压后是一个目录，而不是一堆散落在当前目录的文件
+        $prefix = Split-Path -Leaf $stage
+        foreach ($file in (Get-ChildItem -LiteralPath $stage -Recurse -File)) {
+            $relative = $file.FullName.Substring($stage.Length).TrimStart('\', '/')
+            $entryName = $prefix + '/' + ($relative -replace '\\', '/')
+            [void][System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile(
+                $archive, $file.FullName, $entryName,
+                [System.IO.Compression.CompressionLevel]::Optimal)
+        }
+    } finally {
+        $archive.Dispose()
+    }
     $zipMb = [math]::Round(((Get-Item -LiteralPath $zipPath).Length / 1MB), 1)
     Write-Host ("  完成：{0}（{1} MB）" -f $zipPath, $zipMb) -ForegroundColor Green
     Write-Host ''

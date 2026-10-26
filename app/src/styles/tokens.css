@@ -80,6 +80,8 @@ body[data-preset="whale"][data-theme="dark"] {
 
 html,
 body {
+  /* 透明区不挡下方窗口：根节点不吃 hit-test，可交互子元素单独开 pointer-events */
+  pointer-events: none;
   margin: 0;
   width: 100%;
   height: 100%;

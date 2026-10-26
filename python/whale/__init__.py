@@ -8,7 +8,7 @@
 数据目录优先级：``--home`` 参数 > 环境变量 ``MIMO_WHALE_HOME`` > 平台默认目录。
 """
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 # 缓存 / 快照结构版本，与 Electron 渲染层约定的契约版本。
 # 改动快照字段时必须同时 bump 这里和 docs/ARCHITECTURE.md。

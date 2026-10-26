@@ -8,7 +8,10 @@ import { el } from './dom.js';
 
 const ORDER = { idle: 0, turn: 1, pending: 2 };
 
-export function createToast() {
+// 气泡统一 5 秒自动消失（pending 是状态提示，常驻）
+export const BUBBLE_TTL_MS = 5000;
+
+export function createToast({ onChange } = {}) {
   const node = document.getElementById('toast');
   let current = null; // { kind, timer }
 
@@ -25,6 +28,7 @@ export function createToast() {
     node.hidden = false;
     const timer = ttl > 0 ? setTimeout(() => hide(kind), ttl) : null;
     current = { kind, timer };
+    if (onChange) onChange(true, kind);
     return true;
   }
 
@@ -36,6 +40,7 @@ export function createToast() {
     current = null;
     node.hidden = true;
     node.replaceChildren();
+    if (onChange) onChange(false);
   }
 
   return {
@@ -50,7 +55,7 @@ export function createToast() {
         class: 'toast__line',
         text: `输出 ${Number(info.output || 0).toLocaleString('zh-CN')} tok · ${speed}`,
       });
-      return show('turn', [title, line1, line2], 6000);
+      return show('turn', [title, line1, line2], BUBBLE_TTL_MS);
     },
 
     showPending(message, kind) {
@@ -66,7 +71,7 @@ export function createToast() {
       } else {
         children.push(el('span', { class: 'toast__line', text: text || '…' }));
       }
-      return show('idle', children, 5000);
+      return show('idle', children, BUBBLE_TTL_MS);
     },
 
     hide,

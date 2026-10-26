@@ -106,6 +106,35 @@ test('CSP 没有放开 inline script', () => {
   assert.ok(!/script-src[^;]*unsafe-eval/.test(csp[1]), 'script-src 不应包含 unsafe-eval');
 });
 
+test('渲染层调用的 api.<组>.<方法> 都在 api.js 里暴露了', () => {
+  // 真实踩过：clickthrough.js 调 api.window.setMouseIgnore()，
+  // 但 api.js 的 window 分组里没有这个方法 → 抛异常 → 宠物变成点不动，
+  // 而主进程侧一切正常，smoke 的程序化点击也发现不了。
+  const apiSource = read(path.join(JS_DIR, 'api.js'));
+  const groups = {};
+  let current = null;
+  for (const line of apiSource.split('\n')) {
+    const open = line.match(/^  ([A-Za-z_$][\w$]*): \{/);
+    if (open) { current = open[1]; groups[current] = new Set(); continue; }
+    if (/^  \},?$/.test(line)) { current = null; continue; }
+    if (current) {
+      const member = line.match(/^    ([A-Za-z_$][\w$]*):/);
+      if (member) groups[current].add(member[1]);
+    }
+  }
+
+  const missing = [];
+  for (const name of rendererFiles) {
+    const source = read(path.join(JS_DIR, name));
+    for (const match of source.matchAll(/\bapi\.([A-Za-z_$][\w$]*)\.([A-Za-z_$][\w$]*)\s*\(/g)) {
+      const [, group, method] = match;
+      if (!groups[group]) { missing.push(`${name}: api.${group} 分组不存在`); continue; }
+      if (!groups[group].has(method)) missing.push(`${name}: api.${group}.${method} 未在 api.js 暴露`);
+    }
+  }
+  assert.deepEqual(missing, [], `以下调用没有对应的接口实现：\n${missing.join('\n')}`);
+});
+
 test('渲染层没有把 innerHTML 当模板用', () => {
   const offenders = [];
   for (const name of rendererFiles) {
@@ -113,6 +142,30 @@ test('渲染层没有把 innerHTML 当模板用', () => {
     if (/\.innerHTML\s*=/.test(source)) offenders.push(name);
   }
   assert.deepEqual(offenders, [], `这些文件用了 innerHTML，应改为 textContent / DOM 构建：${offenders.join(', ')}`);
+});
+
+test('气泡 5 秒自动消失，且点击/失焦可关闭', () => {
+  const toast = read(path.join(JS_DIR, 'toast.js'));
+  assert.match(toast, /BUBBLE_TTL_MS\s*=\s*5000/, '气泡自动消失时间应为 5 秒');
+  assert.match(toast, /show\('idle', children, BUBBLE_TTL_MS\)/, 'idle 气泡应使用 5 秒 TTL');
+  assert.match(toast, /show\('turn', \[title, line1, line2\], BUBBLE_TTL_MS\)/, 'turn 气泡应使用 5 秒 TTL');
+
+  const app = read(path.join(JS_DIR, 'app.js'));
+  assert.match(app, /createToast\(\{\s*onChange/, 'app.js 应向 createToast 传入 onChange');
+  assert.match(app, /addEventListener\('click', dismissBubble/, '缺少"点击任意处关闭气泡"');
+  assert.match(app, /addEventListener\('blur'[\s\S]{0,220}dismissBubble\(\)/, '窗口失焦时应关闭气泡');
+
+  const click = read(path.join(JS_DIR, 'clickthrough.js'));
+  assert.match(click, /function setHold/, 'clickthrough 应提供 setHold（浮层/气泡可见时临时捕获鼠标）');
+});
+
+test('余额面板（气泡）5 秒自动关闭，且点空白处可关', () => {
+  const app = read(path.join(JS_DIR, 'app.js'));
+  assert.match(app, /function armOverlayTimer|const armOverlayTimer/, '缺少浮层自动关闭计时器');
+  assert.match(app, /setTimeout\(\(\) => \{[\s\S]{0,120}\}, 5000\)/, '浮层自动关闭应为 5 秒');
+  assert.match(app, /panel\.isOpen\(\) && !inside\('#panel'\)/, '点击面板外应关闭面板');
+  assert.match(app, /panelEl\.addEventListener\('mouseenter', clearOverlayTimer\)/, '鼠标停在面板上应暂停计时');
+  assert.match(app, /panel\.isOpen\(\)\) panel\.close\(\)/, '计时结束应关闭面板');
 });
 
 test('可见的菜单按钮必须绑定事件（不能是死的）', () => {

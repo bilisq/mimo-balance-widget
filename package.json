@@ -1,7 +1,7 @@
 {
   "name": "mimo-balance-widget",
   "productName": "MiMo 余额挂件",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "透明置顶的 MiMo 账户桌宠：余额、Token Plan、今日/7 日消耗、会话用量与缓存命中",
   "homepage": "https://github.com/bilisq/mimo-balance-widget#readme",
@@ -23,7 +23,7 @@
     "start": "electron .",
     "smoke": "electron . --smoke-test",
     "test": "node --test",
-    "test:py": "node scripts/test-python.js",
+    "test:py": "node scripts/python-tests.js",
     "test:all": "npm test && npm run test:py",
     "lint": "node scripts/check-syntax.js",
     "setup": "powershell -ExecutionPolicy Bypass -File setup.ps1",

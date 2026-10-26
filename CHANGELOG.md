@@ -2,6 +2,38 @@
 
 本项目由旧版 **MiMoWhale-Widget**（0.1.x）重写而来，版本号重新从 **0.1.0** 开始：功能基本不变，结构和正确性大幅调整。
 
+## 0.1.1（2026-10-26）
+
+### 新增
+
+- **透明区点击穿透**：窗口空白处不再挡住下层程序，只有宠物 / 面板 / 菜单 / 诊断面板可交互。
+  实现是"主进程默认 `setIgnoreMouseEvents(true, { forward: true })` + 渲染层按 `getBoundingClientRect`
+  几何判定"，宠物额外留 16px 热区；拖拽期间锁死捕获。
+- **余额面板（旧版的"余额气泡"）5 秒自动收**，并且**点空白处立即关闭**。
+  做法借自旧版：旧版没有点击穿透，透明像素照样接收点击，所以一次 `pointerdown` 就能判断
+  "点在面板/鲸鱼之外就关"。现在空白区是穿透的、页面收不到点击，所以浮层打开期间先
+  `setHold(true)` 让窗口重新捕获鼠标，关掉后再放回穿透；鼠标停在面板上时暂停计时
+  （旧版同款），移开重新计时；窗口失焦也关闭。
+- **提示气泡**（余额/消耗）：**5 秒自动消失**（`BUBBLE_TTL_MS`），点击任意处或失焦立即关闭；
+  `pending`（等待回答/授权）仍常驻。
+
+### 修复
+
+- **宠物点不动**：渲染层 `api.js` 没暴露 `window.setMouseIgnore`，`clickthrough.js` 调用时抛异常
+  又被 `catch {}` 吞掉，窗口于是永远停在"忽略鼠标"状态——空白能穿透，宠物却点不到。
+- **「检查更新」按钮从 0.1.0 起就是坏的**：`menu.js` 调 `api.update.check()`，而 `api.js` 同样漏了
+  `update` 分组。两处都是"主进程/preload 有，渲染层封装忘了加"。
+- `clickthrough.js` 不再静默吞异常：首次失败会 `console.error`，并写进日志。
+
+### 质量
+
+- 新增静态测试：**渲染层调用的 `api.<组>.<方法>` 必须在 `api.js` 里存在**（上面两个 bug 都归它管）。
+- `npm run smoke` 增加点击穿透链路断言：`mouseCaptureOnPet` / `mouseCaptureOffBlank` / `mouseIgnoreWired`，
+  覆盖"渲染层 → preload → IPC → 窗口"整条链路。
+- 新增气泡/浮层行为断言（5 秒 TTL、点空白关闭、hover 暂停、`setHold`）。
+- `npm run smoke` 增加 `mouseHeldWhileOverlayOpen`：浮层开着时鼠标移到空白处仍保持捕获，
+  关掉后恢复穿透——这条正是"点空白关闭"能成立的前提。
+
 ## 0.1.0
 
 ### 新增（可双击的 exe 启动器）
@@ -218,6 +250,6 @@
 - 生成物 `app/auto-launch.ps1`、`pet-path.txt`、递归搜索安装目录的启发式逻辑；
 - 死代码与小道具（`chip`、`.speech`、无用的 `import time` 等）。
 
-## 0.1.0
+## 旧版 MiMoWhale-Widget 0.1.x（已归档）
 
 首个公开版本：透明置顶桌宠、余额 / 套餐 / 会话用量、三种皮肤、开机自启、MiMo 技能。

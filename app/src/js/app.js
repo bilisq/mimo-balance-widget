@@ -16,6 +16,7 @@ import { createPet } from './pet.js';
 import { createMenu } from './menu.js';
 import { createDiagnostics } from './diagnostics.js';
 import { createIdleSpeech } from './idle.js';
+import { setupClickThrough } from './clickthrough.js';
 
 const ctx = {
   settings: null,
@@ -42,11 +43,56 @@ async function boot() {
   }
 
   const audio = createAudio();
-  const toast = createToast();
-  const diagnostics = createDiagnostics({ api });
+  // 气泡可见期间临时"捕获鼠标"：否则空白处是穿透的，点不到气泡本身，
+  // 也就无法"点任意空白处关闭"。回调里的 clickThrough 稍后才赋值，用 let 兜住时序。
+  let clickThrough = null;
+  let syncHold = () => {};
+  const toast = createToast({ onChange: () => syncHold() });
+
+  const diagnostics = createDiagnostics({
+    api,
+    onOpen: () => syncHold(),
+    onClose: () => syncHold(),
+  });
 
   let panel = null;
   let menu = null;
+
+  clickThrough = setupClickThrough({ api });
+
+  // --- 浮层（面板/菜单/诊断）与气泡的"捕获鼠标 + 自动关闭" ---
+  // 借鉴旧版：透明窗口并不穿透时，一次 pointerdown 就能关掉外面的浮层。
+  // 现在空白区是穿透的，所以浮层打开期间必须先让窗口重新"捕获"，否则点击到不了页面。
+  let overlayTimer = null;
+  const anyOverlay = () =>
+    (panel && panel.isOpen()) ||
+    (menu && menu.isOpen()) ||
+    diagnostics.isOpen() ||
+    (toast.isVisible() && toast.kind() !== 'pending');
+
+  syncHold = () => {
+    if (clickThrough) clickThrough.setHold(anyOverlay());
+  };
+
+  const clearOverlayTimer = () => {
+    if (overlayTimer) clearTimeout(overlayTimer);
+    overlayTimer = null;
+  };
+
+  // 旧版是 5000ms 自动收气泡；鼠标停在浮层上时暂停计时
+  const armOverlayTimer = () => {
+    clearOverlayTimer();
+    overlayTimer = setTimeout(() => {
+      if (panel && panel.isOpen()) panel.close();
+    }, 5000);
+  };
+
+  const dismissBubble = () => {
+    if (!toast.isVisible()) return;
+    if (toast.kind() === 'pending') return;
+    toast.hide();
+  };
+  document.addEventListener('click', dismissBubble, true);
 
   const pet = createPet({
     api,
@@ -60,6 +106,14 @@ async function boot() {
     onOpen: () => {
       if (menu && menu.isOpen()) menu.close();
       toast.hide('idle');
+      // 借鉴旧版：面板即"余额气泡"，打开后 5 秒自动收；期间窗口必须捕获鼠标，
+      // 否则空白处的点击是穿透的，根本到不了页面，"点空白关闭"就无从实现。
+      armOverlayTimer();
+      syncHold();
+    },
+    onClose: () => {
+      clearOverlayTimer();
+      syncHold();
     },
   });
 
@@ -98,6 +152,7 @@ async function boot() {
     onOpenChange: (open) => {
       const root = $('#pet');
       if (root) root.classList.toggle('is-menu-open', open);
+      syncHold();
     },
   });
 
@@ -227,23 +282,38 @@ async function boot() {
   });
   idle.start();
 
-  // 点击空白处关闭浮层；Esc 关闭；失焦关设置
+  // 点击空白处关闭浮层；Esc 关闭；失焦关闭
   document.addEventListener('pointerdown', (event) => {
     const inside = (selector) => !!event.target.closest(selector);
     if (panel.isOpen() && !inside('#panel') && !inside('#whale')) panel.close();
     if (menu.isOpen() && !inside('#menu') && !inside('#whale')) menu.close();
     if (diagnostics.isOpen() && !inside('#diagnostics')) diagnostics.close();
+    syncHold();
   });
+
+  // 鼠标停在面板上时暂停 5 秒计时（旧版同款行为），移开重新计时
+  const panelEl = $('#panel');
+  if (panelEl) {
+    panelEl.addEventListener('mouseenter', clearOverlayTimer);
+    panelEl.addEventListener('mouseleave', () => {
+      if (panel.isOpen()) armOverlayTimer();
+    });
+  }
 
   document.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
     menu.close();
     diagnostics.close();
     panel.close();
+    syncHold();
   });
 
   window.addEventListener('blur', () => {
     if (menu.isOpen()) menu.close();
+    if (panel.isOpen()) panel.close();
+    if (diagnostics.isOpen()) diagnostics.close();
+    dismissBubble();
+    syncHold();
   });
 
   // 首次联网刷新交回主进程调度；这里只兜底一次，避免完全没数据

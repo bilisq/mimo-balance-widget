@@ -48,7 +48,7 @@ const GROUPS = [
   },
 ];
 
-export function createDiagnostics({ api }) {
+export function createDiagnostics({ api, onOpen, onClose }) {
   const root = $('#diagnostics');
   const body = $('#diagnostics-body');
   const closeButton = $('#diagnostics-close');
@@ -58,6 +58,7 @@ export function createDiagnostics({ api }) {
     if (!root || !body) return;
     opened = true;
     root.hidden = false;
+    if (onOpen) onOpen();
     clear(body);
     body.append(el('p', { class: 'hint', text: '读取中…' }));
     api
@@ -95,6 +96,7 @@ export function createDiagnostics({ api }) {
 
   function close() {
     opened = false;
+    if (onClose) onClose();
     if (root) root.hidden = true;
   }
 

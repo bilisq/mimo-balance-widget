@@ -128,6 +128,11 @@ export const api = {
     get: () => need().theme.get(),
   },
 
+  // 手动检查更新（点了才请求 GitHub）
+  update: {
+    check: () => need().update.check(),
+  },
+
   autostart: {
     get: () => need().autostart.get(),
     set: (enabled) => need().autostart.set(enabled),
@@ -141,6 +146,8 @@ export const api = {
     geometry: () => need().window.geometry(),
     move: (point) => need().window.move(point),
     snap: () => need().window.snap(),
+    // 透明区点击穿透用：true = 忽略鼠标（穿透到下层窗口）
+    setMouseIgnore: (ignore) => need().window.setMouseIgnore(ignore),
   },
 
   hide: () => need().hide(),

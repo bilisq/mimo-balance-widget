@@ -11,7 +11,8 @@ export const PET = Object.freeze({ width: 170, height: 180 });
 export const WINDOW = Object.freeze({
   width: 430,
   height: 430,
-  margin: 8,
+  // 0：贴工作区边缘。workArea 已扣掉任务栏，不会盖住任务栏。
+  margin: 0,
 });
 
 /** 宠物在窗口内的边距（宠物固定在窗口右下角）。 */

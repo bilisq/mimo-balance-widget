@@ -3,6 +3,7 @@
    ========================================================= */
 
 .panel {
+  pointer-events: auto;
   position: absolute;
   right: calc(var(--pet-w) + 2px);
   bottom: calc(var(--pet-h) - 32px);

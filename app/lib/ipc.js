@@ -291,6 +291,7 @@ function registerIpc(deps) {
     if (point) windowController.moveTo(point);
   });
   on('window:snap', () => windowController.snapToEdge());
+  on('window:mouse-ignore', (ignore) => windowController.setMouseIgnore(!!ignore));
   on('app:hide', () => windowController.hide());
   on('app:quit', () => app.quit());
 

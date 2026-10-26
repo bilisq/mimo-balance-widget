@@ -68,6 +68,7 @@ contextBridge.exposeInMainWorld('whale', {
     geometry: () => invoke('window:geometry'),
     move: (point) => ipcRenderer.send('window:move', point),
     snap: () => ipcRenderer.send('window:snap'),
+    setMouseIgnore: (ignore) => ipcRenderer.send('window:mouse-ignore', !!ignore),
   },
 
   hide: () => ipcRenderer.send('app:hide'),

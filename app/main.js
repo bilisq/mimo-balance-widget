@@ -342,7 +342,7 @@ async function bootstrap() {
     Tray,
     Menu,
     nativeImage,
-    iconPath: path.join(runtime.paths.assetsDir, 'whale-tight.png'),
+    iconPath: path.join(runtime.paths.artworkDir, 'xiaomi.png'),
     isVisible: () => runtime.windowController.isVisible(),
     onToggle: () => runtime.windowController.toggle(),
     onRefresh: () => {
@@ -472,12 +472,57 @@ async function runSmoke() {
 
     report.ui = ui;
 
+    // 点击穿透：渲染层按几何判定切"捕获/穿透"，这段链路（渲染层→preload→IPC→窗口）
+    // 是程序调用测不到的盲区——曾经因为 api.js 少暴露一个方法，宠物变成点不动。
+    const click = await win.webContents.executeJavaScript(`(async () => {
+      const pet = document.getElementById('whale');
+      const rect = pet ? pet.getBoundingClientRect() : null;
+      const center = rect
+        ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+        : { x: 8, y: 8 };
+      const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+      window.dispatchEvent(new MouseEvent('mousemove', { clientX: center.x, clientY: center.y, bubbles: true }));
+      await wait(150);
+      const onPet = document.body.dataset.mouseCapture || '';
+
+      // 浮层（这里是上一步打开过的菜单）打开期间，鼠标移到空白处也应该保持捕获，
+      // 否则空白点击收不到，"点空白关闭浮层"就不成立。
+      window.dispatchEvent(new MouseEvent('mousemove', { clientX: 2, clientY: 2, bubbles: true }));
+      await wait(150);
+      const heldWhileOpen = document.body.dataset.mouseCapture || '';
+
+      // 用真实的关闭路径：在空白处按下 → 浮层关闭 → 恢复穿透
+      const blank = document.body;
+      blank.dispatchEvent(new MouseEvent('pointerdown', { clientX: 2, clientY: 2, bubbles: true }));
+      blank.dispatchEvent(new MouseEvent('click', { clientX: 2, clientY: 2, bubbles: true }));
+      await wait(150);
+      window.dispatchEvent(new MouseEvent('mousemove', { clientX: 2, clientY: 2, bubbles: true }));
+      await wait(150);
+      const onBlank = document.body.dataset.mouseCapture || '';
+
+      return {
+        onPet,
+        heldWhileOpen,
+        onBlank,
+        petRect: rect ? { w: Math.round(rect.width), h: Math.round(rect.height) } : null,
+      };
+    })()`);
+
+    report.mouse = click;
+    const ignoreCalls = (runtime.windowController && runtime.windowController.ignoreCalls) || 0;
+
     report.checks = {
       windowCreated: true,
       rendererLoaded: dom.ready === '1',
       apiExposed: dom.hasApi,
       domReady: dom.hasPet && dom.hasPanel && dom.hasMenu,
       menuOpens: !!ui.menuOpened,
+      mouseCaptureOnPet: click.onPet === '1',
+      // 浮层开着时保持捕获（"点空白关闭"的前提）
+      mouseHeldWhileOverlayOpen: click.heldWhileOpen === '1',
+      mouseCaptureOffBlank: click.onBlank === '0',
+      mouseIgnoreWired: ignoreCalls > 0,
       title: dom.title,
     };
     report.sidecar = runtime.sidecar ? runtime.sidecar.status() : null;
@@ -487,6 +532,10 @@ async function runSmoke() {
       && report.checks.apiExposed
       && report.checks.domReady
       && report.checks.menuOpens
+      && report.checks.mouseCaptureOnPet
+      && report.checks.mouseHeldWhileOverlayOpen
+      && report.checks.mouseCaptureOffBlank
+      && report.checks.mouseIgnoreWired
       && runtime.rendererErrors.length === 0
     );
     finish(report.ok ? 0 : 1);

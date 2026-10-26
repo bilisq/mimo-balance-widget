@@ -42,7 +42,7 @@ class WindowController {
       focusable: true,
       show: false,
       title: 'MiMo 余额挂件',
-      icon: path.join(this.paths.assetsDir, 'whale-tight.png'),
+      icon: path.join(this.paths.artworkDir, 'xiaomi.png'),
       webPreferences: {
         preload: this.paths.preload,
         contextIsolation: true,
@@ -93,7 +93,20 @@ class WindowController {
     });
 
     this.win.loadFile(this.paths.indexHtml);
+    // 透明区默认不挡下方窗口；forward 让渲染层仍能收到 mousemove 来判断悬停
+    this.setMouseIgnore(true);
     return this.win;
+  }
+
+  /**
+   * true = 空白区点击穿透（下方窗口可点）；false = 捕获鼠标（宠物/面板可交互）。
+   * ignore 时必须 forward，否则渲染层收不到 mousemove，无法再切回捕获。
+   */
+  setMouseIgnore(ignore) {
+    if (!this.win || this.win.isDestroyed()) return;
+    // 计数用于冒烟自检：渲染层 → preload → IPC → 这里的链路是否真的通了
+    this.ignoreCalls = (this.ignoreCalls || 0) + 1;
+    this.win.setIgnoreMouseEvents(!!ignore, { forward: true });
   }
 
   get webContents() {
@@ -150,9 +163,33 @@ class WindowController {
     if (!this.win) return;
     if (saved && this._isOnScreen(saved)) {
       this.win.setPosition(Math.round(saved.x), Math.round(saved.y));
+      this._snapIfNearEdge();
       return;
     }
     this.placeBottomRight();
+  }
+
+  /**
+   * 旧版 margin=8，升级后贴边位置会留一圈缝。
+   * 宠物矩形离某条边只有十几像素时，按当前 margin 重新吸附一次。
+   */
+  _snapIfNearEdge() {
+    if (!this.win) return;
+    const { PET, WINDOW } = this.geometry;
+    const bounds = this.win.getBounds();
+    const area = this.screen.getDisplayMatching(bounds).workArea;
+    const insetX = WINDOW.width - PET.width;
+    const insetY = WINDOW.height - PET.height;
+    const petLeft = bounds.x + insetX;
+    const petTop = bounds.y + insetY;
+    const distances = [
+      petLeft - area.x,
+      area.x + area.width - (petLeft + PET.width),
+      petTop - area.y,
+      area.y + area.height - (petTop + PET.height),
+    ];
+    // 旧 margin 是 8；阈值放宽到 16，刚好覆盖"几乎贴边但还差一点"的旧坐标
+    if (distances.some((d) => d > 0 && d <= 16)) this.snapToEdge();
   }
 
   _isOnScreen(point) {

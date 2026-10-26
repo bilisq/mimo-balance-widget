@@ -8,6 +8,8 @@ import sys
 import unittest
 from pathlib import Path
 
+from whale import __version__
+
 from . import support
 
 PY_DIR = Path(__file__).resolve().parents[1]
@@ -34,7 +36,7 @@ class SidecarTest(unittest.TestCase):
             support.temp_dir(),
         )
         self.assertEqual(messages[0]["event"], "ready")
-        self.assertEqual(messages[0]["version"], "0.1.0")
+        self.assertEqual(messages[0]["version"], __version__)
         ping = [m for m in messages if m.get("id") == 1][0]
         self.assertTrue(ping["ok"])
         self.assertIn("version", ping["data"])
